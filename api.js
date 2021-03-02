@@ -25,12 +25,13 @@ function create(req, res, next) {
         }        
     })
     console.log('Complete Req')
-    return next();
+    next();
 }
 
 function read(req, res, next) {
     let records = [];
 
+    console.log('Read data')
     db.createReadStream()
         .on('data', function (data) {
             records.push([data.key.toString(), data.value.toString()])
@@ -42,14 +43,14 @@ function read(req, res, next) {
             res.send(records);
         })
 
-    return next();        
+    next();        
 }
 
 function update(req, res, next) {
     let key = req.body.field;
     let value = req.body.value;
 
-    console.log('put data:', key, value)
+    console.log('Update data:', key, value)
     db.put(key, value, function (err) {
         if (err) {
             res.send('Record already exists');
@@ -58,16 +59,31 @@ function update(req, res, next) {
         }        
     })
     console.log('Complete Req')
-    return next();
-}  
+    next();
+}
+
+function delete_(req, res, next) {
+    let key = req.params.field;
+
+    console.log('Delete field:', key)
+    db.del(key, function (err) {
+        if (err) {
+            res.send(err);
+        } else {
+            res.send('Deleted');
+        }
+    })
+    
+    console.log('Complete Req')
+    next();
+}
 
 var server = restify.createServer();
 server.use(restify.plugins.bodyParser({ mapParams: true }));
-
-
 server.post('/todo', create);
 server.get('/todo', read);
 server.put('/todo', update);
+server.del('/todo/:field', delete_);
 
 server.listen(8080, '127.0.0.1', function() {
     console.log('%s listening at %s', server.name, server.url);
