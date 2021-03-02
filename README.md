@@ -6,7 +6,9 @@
 
 ## DB 
 
-Took the key-value embedded db `levelup` as a simple storage avoiding db administration and setting up. We keep a project minimalistic and implement features we need only extending it on demand.
+Took the key-value embedded db `levelup` as a simple storage avoiding db administration and setting up. **De-normalized data model** is chosen over **ER model** as the second is not required.
+
+We keep a project minimalistic and implement features we need only extending it on demand.
 
 ## Curl testing commands
 
@@ -26,7 +28,8 @@ curl -X GET http://127.0.0.1:8080/todo
 ### Update
 
 ```
-curl -X PUT -F 'field=rec2' -F 'value=complete post. uPDATED' http://127.0.0.1:8080/todo
+curl -X PUT -F 'field=rec2' -F 'value=complete post.' http://127.0.0.1:8080/todo
+curl -X PUT -F 'field=rec2' -F 'value=complete post. UPDATED' http://127.0.0.1:8080/todo
 curl -X GET http://127.0.0.1:8080/todo
 ```
 
