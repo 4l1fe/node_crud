@@ -19,11 +19,29 @@ function create(req, res, next) {
     console.log('complete req')
     next();
 }
+
+function read(req, res, next) {
+    let records = [];
+
+    db.createReadStream()
+        .on('data', function (data) {
+            records.push([data.key.toString(), data.value.toString()])
+        })
+        .on('error', function (err) {
+            res.send(err)
+        })
+        .on('close', function () {
+            res.send(records);
+        })
+
+    next();        
+}
   
 var server = restify.createServer();
 server.use(restify.plugins.bodyParser({ mapParams: true }));
 
 server.post('/todo', create);
+server.get('/todo', read);
 
 server.listen(8080, '127.0.0.1', function() {
     console.log('%s listening at %s', server.name, server.url);
