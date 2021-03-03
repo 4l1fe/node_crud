@@ -2,7 +2,7 @@ var restify = require('restify');
 var levelup = require('levelup');
 var leveldown = require('leveldown');
 
-var db = levelup(leveldown('./mydb.lvl'))
+var db = levelup(leveldown('./db.lvl'))
 
 function create(req, res, next) {
     let key = req.body.field;
@@ -11,23 +11,22 @@ function create(req, res, next) {
     db.get(key)
     .then(value => {
         if (value) {
-            return next(new Error('Record already exists!'));
+            throw new Error('Record already exists!');
         }
     })
     .catch(error => {
         if (!error.notFound) {
-            return next(error);
+            throw error;
         }
     })
     .then(() => {
-        console.log('put data')
-        return db.put(key, value)
+        db.put(key, value)
     })
     .then(() => {
         res.send('Record is created');
     })
     .catch(error => {
-        return next(error);
+        next(error);
     });
 
     next();
@@ -36,7 +35,6 @@ function create(req, res, next) {
 function read(req, res, next) {
     let records = [];
 
-    console.log('Read data')
     db.createReadStream()
         .on('data', function (data) {
             records.push([data.key.toString(), data.value.toString()])
@@ -55,12 +53,12 @@ function update(req, res, next) {
     let key = req.body.field;
     let value = req.body.value;
 
-    db.put(key, value, function (error) {
-        if (error) {
-            return next(error);
-        } else {
-            res.send('Record is updated');
-        }        
+    db.put(key, value)
+    .then(() => {
+        res.send('Record is updated');
+    })
+    .catch((error) => {
+        next(error);
     })
     next();
 }
@@ -68,12 +66,12 @@ function update(req, res, next) {
 function delete_(req, res, next) {
     let key = req.params.field;
 
-    db.del(key, function (error) {
-        if (error) {
-            return next(error);
-        } else {
-            res.send('Deleted');
-        }
+    db.del(key)
+    .then(() => {
+        res.send('Record is Deleted');
+    })
+    .catch((error) => {
+        next(error);
     })
     
     next();
